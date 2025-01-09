@@ -1,50 +1,65 @@
 ﻿@using Microsoft.AspNetCore.Mvc.ViewFeatures
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "SSA";
+    ViewData["Title"] = "Student Staff Absence";
 }
 
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-6 offset-md-3">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white text-center">
-                    <h3>Student Staff Absence</h3>
-                </div>
-                <div class="card-body">
-                    @if (TempData["Message"] != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            @TempData["Message"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    }
-                    <form method="post" class="needs-validation" novalidate>
-                        <div class="mb-3">
-                            <label for="nim" class="form-label">NIM Mahasiswa</label>
-                            <input type="text" id="nim" name="nim" class="form-control" placeholder="Masukkan NIM Anda" required>
-                            <div class="invalid-feedback">
-                                Harap masukkan NIM Anda.
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="mode" class="form-label">Mode Absensi</label>
-                            <select id="mode" name="mode" class="form-select" required>
-                                <option value="" disabled selected>Pilih Mode</option>
-                                <option value="Datang">Datang</option>
-                                <option value="Pergi">Pergi</option>
-                            </select>
-                            <div class="invalid-feedback">
-                                Harap pilih mode absensi.
-                            </div>
-                        </div>
-                        <div class="text-center">
-                            <button type="submit" class="btn btn-primary w-100">Submit</button>
-                        </div>
-                    </form>
+<style>
+    body {
+        background: url('/images/campus.jpg') no-repeat center center fixed;
+        background-size: cover;
+    }
+
+    .blur-overlay {
+        backdrop-filter: blur(8px);
+        background-color: rgba(255, 255, 255, 0.7); /* Warna putih dengan transparansi */
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        padding: 20px;
+        max-width: 500px;
+        margin: auto;
+        margin-top: 100px;
+    }
+
+    h3 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="container">
+    <div class="blur-overlay">
+        <h3>Student Staff Absence</h3>
+        @if (TempData["Message"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["Message"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        <form method="post" class="needs-validation" novalidate>
+            <div class="mb-3">
+                <label for="nim" class="form-label">NIM Mahasiswa</label>
+                <input type="text" id="nim" name="nim" class="form-control" placeholder="Masukkan NIM Anda" required>
+                <div class="invalid-feedback">
+                    Harap masukkan NIM Anda.
                 </div>
             </div>
-        </div>
+            <div class="mb-3">
+                <label for="mode" class="form-label">Mode Absensi</label>
+                <select id="mode" name="mode" class="form-select" required>
+                    <option value="" disabled selected>Pilih Mode</option>
+                    <option value="Datang">Datang</option>
+                    <option value="Pergi">Pergi</option>
+                </select>
+                <div class="invalid-feedback">
+                    Harap pilih mode absensi.
+                </div>
+            </div>
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary w-100">Submit</button>
+            </div>
+        </form>
     </div>
 </div>
 
