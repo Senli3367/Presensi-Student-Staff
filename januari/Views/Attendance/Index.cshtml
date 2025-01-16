@@ -1,12 +1,12 @@
 ﻿@using Microsoft.AspNetCore.Mvc.ViewFeatures
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Student Staff Absence";
+    ViewData["Title"] = "Student Staff Attendance";
 }
 
 <style>
     body {
-        background: url('/images/campus.jpg') no-repeat center center fixed;
+        background: url('/images/ss.JPG') no-repeat center center fixed;
         background-size: cover;
     }
 
@@ -46,14 +46,14 @@
                 </div>
             </div>
             <div class="mb-3">
-                <label for="mode" class="form-label">Mode Absensi</label>
+                <label for="mode" class="form-label">Mode Presensi</label>
                 <select id="mode" name="mode" class="form-select" required>
                     <option value="" disabled selected>Pilih Mode</option>
                     <option value="Datang">Datang</option>
                     <option value="Pergi">Pergi</option>
                 </select>
                 <div class="invalid-feedback">
-                    Harap pilih mode absensi.
+                    Harap pilih mode Presensi.
                 </div>
             </div>
             <div class="text-center">

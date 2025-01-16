@@ -7,6 +7,28 @@ namespace LibraryAttendance.Controllers
     {
         private readonly AppDbContext _context;
 
+        // Dictionary untuk menyimpan data mahasiswa (NIM dan Nama)
+        private readonly Dictionary<string, string> _studentData = new()
+        {
+            { "210325965", "Fingky Warni Lastria Simbolon" },
+            { "210326254", "Gregorius Vic Vanes Dwi Nanda" },
+            { "210326438", "Ehud Nataniel Purba" },
+            { "210514115", "Anceline Massora" },
+            { "210514399", "Gabriella Dame Octavia Girsang" },
+            { "210611121", "Cornelia Shania Endhita Prabowo" },
+            { "211126439", "Vincentius Satrio Aryo Setyaki" },
+            { "211711469", "Yosef Baptista De Morin Dasman" },
+            { "210425999", "Enrico Oktor Narendra" },
+            { "211126564", "Jessica Aprilia Stephani Parapat" },
+            { "210611119", "Lidia Kurniasih" },
+            { "211125935", "Rizki Dewi Antika" },
+            { "200710729", "Bernadia Yovita Tiara Sambodo" },
+            { "200710829", "Octa Dian Kristanti Kainakaimu" },
+            { "210325954", "Marcella Putrika Cankta Dvuti" },
+            { "210326268", "Stefanus Sigit Prayoga" },
+            { "210426497", "Rosjavsi Weninta Br Barus" }
+        };
+
         public AttendanceController(AppDbContext context)
         {
             _context = context;
@@ -42,7 +64,7 @@ namespace LibraryAttendance.Controllers
         {
             var data = _context.Attendances.AsQueryable();
 
-            // Default nama jika NIM tidak ditemukan
+            // Nama Mahasiswa Default
             ViewBag.StudentName = string.Empty;
 
             if (!string.IsNullOrEmpty(searchNim))
@@ -50,14 +72,10 @@ namespace LibraryAttendance.Controllers
                 // Filter data berdasarkan NIM
                 data = data.Where(a => a.NIM == searchNim);
 
-                // Tetapkan nama berdasarkan NIM
-                if (searchNim == "20113367")
+                // Tetapkan nama berdasarkan pencocokan NIM
+                if (_studentData.TryGetValue(searchNim, out var studentName))
                 {
-                    ViewBag.StudentName = "Senli";
-                }
-                else if (searchNim == "20113368")
-                {
-                    ViewBag.StudentName = "Joko";
+                    ViewBag.StudentName = studentName;
                 }
                 else
                 {
