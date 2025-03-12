@@ -1,6 +1,9 @@
-﻿using LibraryAttendance.Models;
+﻿using System.Text.Json;
+using ClosedXML.Excel;
+using LibraryAttendance.Models;
 using LibraryAttendance.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
 
 namespace LibraryAttendance.Controllers
 {
@@ -8,34 +11,28 @@ namespace LibraryAttendance.Controllers
     {
         private readonly AppDbContext _context;
 
-        // Dictionary untuk menyimpan data mahasiswa (NIM dan Nama)
-        private readonly Dictionary<string, string> _studentData = new()
-        {
-            { "210325965", "Fingky Warni Lastria Simbolon" },
-            { "210326254", "Gregorius Vic Vanes Dwi Nanda" },
-            { "210326438", "Ehud Nataniel Purba" },
-            { "210514115", "Anceline Massora" },
-            { "210514399", "Gabriella Dame Octavia Girsang" },
-            { "210611121", "Cornelia Shania Endhita Prabowo" },
-            { "211126439", "Vincentius Satrio Aryo Setyaki" },
-            { "211711469", "Yosef Baptista De Morin Dasman" },
-            { "210425999", "Enrico Oktor Narendra" },
-            { "211126564", "Jessica Aprilia Stephani Parapat" },
-            { "210611119", "Lidia Kurniasih" },
-            { "211125935", "Rizki Dewi Antika" },
-            { "200710729", "Bernadia Yovita Tiara Sambodo" },
-            { "200710829", "Octa Dian Kristanti Kainakaimu" },
-            { "210325954", "Marcella Putrika Cankta Dvuti" },
-            { "210326268", "Stefanus Sigit Prayoga" },
-            { "210426497", "Rosjavsi Weninta Br Barus" }
-        };
-
         public AttendanceController(AppDbContext context)
         {
             _context = context;
         }
 
-        // Halaman Absensi (Umum)
+        // 🔹 Method untuk membaca data mahasiswa dari file JSON
+        private Dictionary<string, string> LoadStudentData()
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "students.json");
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return new Dictionary<string, string>();
+            }
+
+            var jsonData = System.IO.File.ReadAllText(filePath);
+            var students = JsonSerializer.Deserialize<List<Student>>(jsonData);
+
+            return students?.ToDictionary(s => s.NIM, s => s.Name) ?? new Dictionary<string, string>();
+        }
+
+        // 🔹 Halaman Absensi (Index)
         public IActionResult Index()
         {
             return View();
@@ -46,6 +43,9 @@ namespace LibraryAttendance.Controllers
         {
             if (!string.IsNullOrEmpty(nim) && !string.IsNullOrEmpty(mode))
             {
+                // Pastikan hanya menyimpan 9 digit terakhir dari NIM
+                nim = nim.Length > 9 ? nim.Substring(nim.Length - 9) : nim;
+
                 var attendance = new Attendance
                 {
                     NIM = nim,
@@ -60,104 +60,144 @@ namespace LibraryAttendance.Controllers
             return RedirectToAction("Index");
         }
 
-        //HALAMAN LAPORAN
+        // 🔹 Halaman Laporan Kehadiran
         public IActionResult Laporan(DateTime? startDate, DateTime? endDate)
         {
+            var studentData = LoadStudentData();
+
             var data = _context.Attendances.AsQueryable();
 
-            // Filter berdasarkan rentang tanggal
             if (startDate.HasValue && endDate.HasValue)
             {
                 data = data.Where(a => a.Timestamp >= startDate.Value.Date && a.Timestamp < endDate.Value.Date.AddDays(1));
             }
-            else if (startDate.HasValue) // Jika hanya memilih 1 hari
+            else if (startDate.HasValue)
             {
                 data = data.Where(a => a.Timestamp.Date == startDate.Value.Date);
             }
 
-            // Eksekusi LINQ ke SQL terlebih dahulu dengan ToList()
             var attendanceList = data.ToList();
-
-            // Hitung total jumlah kehadiran per mahasiswa (Datang + Pergi)
             var attendanceCount = attendanceList
                 .GroupBy(a => a.NIM)
                 .ToDictionary(g => g.Key, g => g.Count());
 
-            // Hitung total jam kehadiran per mahasiswa dalam rentang tanggal
             var attendanceGrouped = attendanceList
-                .GroupBy(a => new { a.NIM, a.Timestamp.Date }) // Kelompokkan berdasarkan NIM dan tanggal
+                .GroupBy(a => new { a.NIM, a.Timestamp.Date })
                 .Select(g =>
                 {
-                    var datang = g.Where(a => a.Mode == "Datang").OrderBy(a => a.Timestamp).FirstOrDefault();
-                    var pergi = g.Where(a => a.Mode == "Pergi").OrderByDescending(a => a.Timestamp).FirstOrDefault();
+                    var Masuk = g.Where(a => a.Mode == "Masuk").OrderBy(a => a.Timestamp).FirstOrDefault();
+                    var Keluar = g.Where(a => a.Mode == "Keluar").OrderByDescending(a => a.Timestamp).FirstOrDefault();
 
                     double totalHours = 0;
-                    if (datang != null && pergi != null)
+                    if (Masuk != null && Keluar != null)
                     {
-                        totalHours = (pergi.Timestamp - datang.Timestamp).TotalHours; // Hitung selisih jam
+                        totalHours = (Keluar.Timestamp - Masuk.Timestamp).TotalHours;
                     }
 
-                    return new
-                    {
-                        g.Key.NIM,
-                        TotalHours = totalHours
-                    };
+                    return new { g.Key.NIM, TotalHours = totalHours };
                 })
-                .GroupBy(x => x.NIM) // Kelompokkan kembali berdasarkan NIM
-                .ToDictionary(g => g.Key, g => g.Sum(x => x.TotalHours)); // Total jam kehadiran untuk setiap mahasiswa
+                .GroupBy(x => x.NIM) // Mencegah duplikasi key
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.TotalHours));
 
-            // Kirimkan data ke ViewBag agar bisa digunakan di View
             ViewBag.AttendanceCount = attendanceCount;
             ViewBag.TotalHoursPerStudent = attendanceGrouped;
+            ViewBag.StudentData = studentData;
             ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
 
             return View();
         }
 
-
-
-
-        // Halaman Admin dengan Filter Tanggal
-        public IActionResult Admin(string searchNim, DateTime? startDate, DateTime? endDate)
+        // 🔹 Export Data Laporan ke Excel
+        public IActionResult ExportToExcel()
         {
+            var attendanceList = _context.Attendances.ToList();
+            var studentData = LoadStudentData();
+
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Laporan Kehadiran");
+                worksheet.Cell(1, 1).Value = "NIM";
+                worksheet.Cell(1, 2).Value = "Nama Mahasiswa";
+                worksheet.Cell(1, 3).Value = "Jumlah Kehadiran";
+                worksheet.Cell(1, 4).Value = "Total Jam Kehadiran";
+
+                var attendanceCount = attendanceList
+                    .GroupBy(a => a.NIM)
+                    .ToDictionary(g => g.Key, g => g.Count());
+
+                var attendanceGrouped = attendanceList
+                    .GroupBy(a => new { a.NIM, a.Timestamp.Date })
+                    .Select(g =>
+                    {
+                        var Masuk = g.Where(a => a.Mode == "Masuk").OrderBy(a => a.Timestamp).FirstOrDefault();
+                        var Keluar = g.Where(a => a.Mode == "Keluar").OrderByDescending(a => a.Timestamp).FirstOrDefault();
+
+                        double totalHours = 0;
+                        if (Masuk != null && Keluar != null)
+                        {
+                            totalHours = (Keluar.Timestamp - Masuk.Timestamp).TotalHours;
+                        }
+
+                        return new { g.Key.NIM, TotalHours = totalHours };
+                    })
+                    .GroupBy(x => x.NIM) // Mencegah duplikasi key
+                    .ToDictionary(g => g.Key, g => g.Sum(x => x.TotalHours));
+
+                int row = 2;
+                foreach (var item in attendanceCount)
+                {
+                    worksheet.Cell(row, 1).Value = item.Key;
+                    worksheet.Cell(row, 2).Value = studentData.ContainsKey(item.Key) ? studentData[item.Key] : "Tidak Diketahui";
+                    worksheet.Cell(row, 3).Value = item.Value;
+                    worksheet.Cell(row, 4).Value = attendanceGrouped.ContainsKey(item.Key) ? attendanceGrouped[item.Key].ToString("0.00") : "0.00";
+                    row++;
+                }
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var content = stream.ToArray();
+                    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Laporan_Kehadiran.xlsx");
+                }
+            }
+        }
+
+        // 🔹 Halaman Admin untuk melihat data absensi
+        public IActionResult Admin(string searchNim, string searchName, DateTime? startDate, DateTime? endDate)
+        {
+            var studentData = LoadStudentData();
+
             var data = _context.Attendances.AsQueryable();
 
-            // Filter berdasarkan NIM jika diisi
             if (!string.IsNullOrEmpty(searchNim))
             {
                 data = data.Where(a => a.NIM == searchNim);
             }
 
-            // Filter berdasarkan rentang tanggal
-            if (startDate.HasValue && endDate.HasValue)
+            if (!string.IsNullOrEmpty(searchName))
             {
-                data = data.Where(a => a.Timestamp >= startDate.Value.Date && a.Timestamp < endDate.Value.Date.AddDays(1));
-            }
-            else if (startDate.HasValue) // Jika hanya memilih 1 hari
-            {
-                data = data.Where(a => a.Timestamp.Date == startDate.Value.Date);
+                var matchedNims = studentData
+                    .Where(s => s.Value.Contains(searchName, StringComparison.OrdinalIgnoreCase))
+                    .Select(s => s.Key)
+                    .ToList();
+
+                data = data.Where(a => matchedNims.Contains(a.NIM));
             }
 
-            // Konversi ke ViewModel untuk menambahkan Nama Mahasiswa
             var viewModel = data.ToList().Select(a => new AttendanceViewModel
             {
                 Id = a.Id,
                 NIM = a.NIM,
                 Mode = a.Mode,
                 Timestamp = a.Timestamp,
-                StudentName = _studentData.ContainsKey(a.NIM) ? _studentData[a.NIM] : "Tidak Diketahui"
+                StudentName = studentData.ContainsKey(a.NIM) ? studentData[a.NIM] : "Tidak Diketahui"
             }).ToList();
-
-            // Kirimkan nilai pencarian ke ViewBag agar tetap terlihat di input
-            ViewBag.SearchNim = searchNim;
-            ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
-            ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
 
             return View(viewModel);
         }
 
-
+        // 🔹 Hapus Data Absensi
         [HttpPost]
         public IActionResult Delete(int id)
         {
@@ -166,6 +206,7 @@ namespace LibraryAttendance.Controllers
             {
                 _context.Attendances.Remove(attendance);
                 _context.SaveChanges();
+                TempData["Message"] = "Data berhasil dihapus!";
             }
             return RedirectToAction("Admin");
         }

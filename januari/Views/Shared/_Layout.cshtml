@@ -7,38 +7,71 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/januari.styles.css" asp-append-version="true" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+Knujsl5/Sp3nH5g9hzfq2BlqWeGEjZb5E5gL5CENW3I/9k" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HoA8P3uWvNoB+bj8eBv4w6yOfxBCF2VG/6IOqYPwgA+Z6LwA8JKYQaW1yPVDklcs" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
     <style>
-        /* Mengatur tinggi penuh untuk halaman */
+        /* Styling umum */
         html, body {
             height: 100%;
             margin: 0;
             display: flex;
             flex-direction: column;
+            font-family: 'Poppins', sans-serif;
         }
 
-        /* Area konten utama mengisi ruang antara header dan footer */
         main {
             flex: 1;
         }
 
-        /* Footer tetap di bagian bawah */
+        /* Navbar modern */
+        .navbar {
+            background: linear-gradient(135deg, #007bff, #00d4ff);
+            padding: 12px 20px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            color: white !important;
+            font-size: 1.5rem;
+        }
+
+        .nav-link {
+            color: white !important;
+            font-size: 1.1rem;
+            padding: 10px 15px;
+            transition: all 0.3s ease;
+        }
+
+            .nav-link:hover {
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+            }
+
+        .navbar-toggler {
+            border: none;
+        }
+
+            .navbar-toggler:focus, .navbar-toggler:active {
+                outline: none;
+                box-shadow: none;
+            }
+
+        /* Footer */
         footer {
-            background-color: #000; /* Warna hitam */
-            color: #fff; /* Teks putih */
+            background-color: #000;
+            color: #fff;
             text-align: center;
             padding: 15px 0;
             border-top: 1px solid #444;
         }
 
             footer a {
-                color: #00d4ff; /* Warna link biru terang */
+                color: #00d4ff;
                 text-decoration: none;
             }
 
@@ -49,20 +82,19 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-lg">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SSA</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Attendance" asp-action="Index">Absensi</a>
+                            <a class="nav-link" asp-area="" asp-controller="Attendance" asp-action="Index">Absensi</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Attendance" asp-action="Admin">Admin</a>
+                            <a class="nav-link" asp-area="" asp-controller="Attendance" asp-action="Admin">Admin</a>
                         </li>
                     </ul>
                 </div>
@@ -79,6 +111,7 @@
             &copy; 2025 - Student Staff Absence - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
