@@ -6,13 +6,13 @@
 
 <style>
     body {
-        background: url('/images/ss.JPG') no-repeat center center fixed;
+        background: url('/images/background.jpg') no-repeat center center fixed;
         background-size: cover;
     }
 
     .blur-overlay {
         backdrop-filter: blur(8px);
-        background-color: rgba(255, 255, 255, 0.7); /* Warna putih transparan */
+        background-color: rgba(255, 255, 255, 0.7);
         border-radius: 10px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         padding: 20px;
@@ -21,43 +21,79 @@
         margin-top: 100px;
     }
 
+    .glass-clock {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 10px;
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        color: #fff;
+        font-size: 2rem;
+        font-weight: bold;
+        text-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+    }
+
     h3 {
         text-align: center;
         margin-bottom: 20px;
     }
+
+    #alertContainer {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+    }
 </style>
+
+<div id="alertContainer">
+    @if (TempData["Message"] != null)
+    {
+        <div id="alertMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Message"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <script>
+            setTimeout(function () {
+                let alertElement = document.getElementById('alertMessage');
+                if (alertElement) {
+                    alertElement.classList.remove('show');
+                    alertElement.classList.add('fade');
+                }
+            }, 5000);
+        </script>
+    }
+</div>
 
 <div class="container">
     <div class="blur-overlay">
-        <h3>Student Staff Absence</h3>
-
-        @if (TempData["Message"] != null)
-        {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                @TempData["Message"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-        }
+        <div id="clock" class="glass-clock"></div>
+        <h3>Student Staff Attendance</h3>
 
         <!-- Form Absensi -->
         <form method="post" class="needs-validation" novalidate>
             <div class="mb-3">
-                <label for="nim" class="form-label">Scan Kartu NIM</label>
-                <input type="text" id="nim" name="nim" class="form-control" placeholder="Scan Kartu NIM Anda" required autofocus>
-                <div class="invalid-feedback">
-                    Harap masukkan NIM Anda.
-                </div>
-            </div>
-
-            <div class="mb-3">
                 <label for="mode" class="form-label">Mode Presensi</label>
                 <select id="mode" name="mode" class="form-select" required>
-                    <option value="" disabled selected>Pilih Mode</option>
+                    <option value="" disabled>Pilih Mode</option>
                     <option value="Masuk">Masuk</option>
                     <option value="Keluar">Keluar</option>
                 </select>
                 <div class="invalid-feedback">
                     Harap pilih mode Presensi.
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="nim" class="form-label">Scan Kartu NIM</label>
+                <input type="text" id="nim" name="nim" class="form-control" placeholder="Scan Kartu NIM Anda" required autofocus>
+                <div class="invalid-feedback">
+                    Harap masukkan NIM Anda.
                 </div>
             </div>
 
@@ -69,9 +105,31 @@
 </div>
 
 <script>
+    function updateClock() {
+        const clockElement = document.getElementById('clock');
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        clockElement.textContent = `${hours}:${minutes}:${seconds}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
     document.addEventListener("DOMContentLoaded", function () {
         const nimInput = document.getElementById("nim");
+        const modeSelect = document.getElementById("mode");
         const form = document.querySelector("form");
+
+        // Set mode from localStorage
+        if (localStorage.getItem("selectedMode")) {
+            modeSelect.value = localStorage.getItem("selectedMode");
+        }
+
+        // Save selected mode to localStorage
+        modeSelect.addEventListener("change", function () {
+            localStorage.setItem("selectedMode", modeSelect.value);
+        });
 
         nimInput.addEventListener("input", function () {
             let value = nimInput.value;
