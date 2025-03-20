@@ -78,6 +78,7 @@ namespace LibraryAttendance.Controllers
 
             var attendanceList = data.ToList();
             var attendanceCount = attendanceList
+                .Where(a => a.Mode == "Keluar")
                 .GroupBy(a => a.NIM)
                 .ToDictionary(g => g.Key, g => g.Count());
 
@@ -96,7 +97,7 @@ namespace LibraryAttendance.Controllers
 
                     return new { g.Key.NIM, TotalHours = totalHours };
                 })
-                .GroupBy(x => x.NIM) // Mencegah duplikasi key
+                .GroupBy(x => x.NIM)
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.TotalHours));
 
             ViewBag.AttendanceCount = attendanceCount;
@@ -123,6 +124,7 @@ namespace LibraryAttendance.Controllers
                 worksheet.Cell(1, 4).Value = "Total Jam Kehadiran";
 
                 var attendanceCount = attendanceList
+                    .Where(a => a.Mode == "Keluar")
                     .GroupBy(a => a.NIM)
                     .ToDictionary(g => g.Key, g => g.Count());
 
@@ -141,7 +143,7 @@ namespace LibraryAttendance.Controllers
 
                         return new { g.Key.NIM, TotalHours = totalHours };
                     })
-                    .GroupBy(x => x.NIM) // Mencegah duplikasi key
+                    .GroupBy(x => x.NIM)
                     .ToDictionary(g => g.Key, g => g.Sum(x => x.TotalHours));
 
                 int row = 2;
