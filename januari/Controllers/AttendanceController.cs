@@ -4,6 +4,8 @@ using LibraryAttendance.Models;
 using LibraryAttendance.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
+using X.PagedList;
+using X.PagedList.Extensions;
 
 namespace LibraryAttendance.Controllers
 {
@@ -166,10 +168,9 @@ namespace LibraryAttendance.Controllers
         }
 
         // 🔹 Halaman Admin untuk melihat data absensi
-        public IActionResult Admin(string searchNim, string searchName, DateTime? startDate, DateTime? endDate)
+        public IActionResult Admin(string searchNim, string searchName, DateTime? startDate, DateTime? endDate, int page = 1)
         {
             var studentData = LoadStudentData();
-
             var data = _context.Attendances.AsQueryable();
 
             if (!string.IsNullOrEmpty(searchNim))
@@ -187,14 +188,17 @@ namespace LibraryAttendance.Controllers
                 data = data.Where(a => matchedNims.Contains(a.NIM));
             }
 
-            var viewModel = data.ToList().Select(a => new AttendanceViewModel
-            {
-                Id = a.Id,
-                NIM = a.NIM,
-                Mode = a.Mode,
-                Timestamp = a.Timestamp,
-                StudentName = studentData.ContainsKey(a.NIM) ? studentData[a.NIM] : "Tidak Diketahui"
-            }).ToList();
+            var viewModel = data
+                .Select(a => new AttendanceViewModel
+                {
+                    Id = a.Id,
+                    NIM = a.NIM,
+                    Mode = a.Mode,
+                    Timestamp = a.Timestamp,
+                    StudentName = studentData.ContainsKey(a.NIM) ? studentData[a.NIM] : "Tidak Diketahui"
+                })
+                .OrderByDescending(a => a.Timestamp)
+                .ToPagedList(page, 10);  // Pastikan Anda menggunakan ToPagedList di sini
 
             return View(viewModel);
         }
