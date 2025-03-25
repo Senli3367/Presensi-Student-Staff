@@ -45,22 +45,37 @@ namespace LibraryAttendance.Controllers
         {
             if (!string.IsNullOrEmpty(nim) && !string.IsNullOrEmpty(mode))
             {
-                // Pastikan hanya menyimpan 9 digit terakhir dari NIM
                 nim = nim.Length > 9 ? nim.Substring(nim.Length - 9) : nim;
+                var today = DateTime.Today;
 
-                var attendance = new Attendance
+                var existingAttendance = _context.Attendances
+                    .Where(a => a.NIM == nim && a.Timestamp.Date == today)
+                    .ToList();
+
+                var hasMasuk = existingAttendance.Any(a => a.Mode == "Masuk");
+                var hasKeluar = existingAttendance.Any(a => a.Mode == "Keluar");
+
+                if ((mode == "Masuk" && hasMasuk) || (mode == "Keluar" && hasKeluar))
                 {
-                    NIM = nim,
-                    Mode = mode,
-                    Timestamp = DateTime.Now
-                };
+                    TempData["Message"] = $"Absensi {mode} hari ini sudah tercatat.";
+                }
+                else
+                {
+                    var attendance = new Attendance
+                    {
+                        NIM = nim,
+                        Mode = mode,
+                        Timestamp = DateTime.Now
+                    };
 
-                _context.Attendances.Add(attendance);
-                _context.SaveChanges();
-                TempData["Message"] = "Absensi berhasil!";
+                    _context.Attendances.Add(attendance);
+                    _context.SaveChanges();
+                    TempData["Message"] = "Absensi berhasil!";
+                }
             }
             return RedirectToAction("Index");
         }
+
 
         // 🔹 Halaman Laporan Kehadiran
         public IActionResult Laporan(DateTime? startDate, DateTime? endDate)

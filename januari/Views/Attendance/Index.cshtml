@@ -54,8 +54,11 @@
 <div id="alertContainer">
     @if (TempData["Message"] != null)
     {
-        <div id="alertMessage" class="alert alert-success alert-dismissible fade show" role="alert">
-            @TempData["Message"]
+        var message = TempData["Message"].ToString();
+        var isError = message.Contains("sudah tercatat");
+
+        <div id="alertMessage" class="alert @(isError ? "alert-danger" : "alert-success") alert-dismissible fade show" role="alert">
+            @message
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         <script>
@@ -69,6 +72,7 @@
         </script>
     }
 </div>
+
 
 <div class="container">
     <div class="blur-overlay">
